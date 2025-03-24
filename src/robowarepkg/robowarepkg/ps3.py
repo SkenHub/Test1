@@ -1,3 +1,4 @@
+# このファイルは、PS3コントローラからの入力を受け取りCANメッセージとして送信するためのモジュールです。
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Float32MultiArray
@@ -6,6 +7,7 @@ import os
 
 class PS3ControllerNode(Node):
     def __init__(self):
+        # コンストラクタ: ノード初期化、ジョイスティック設定等
         super().__init__('ps3_controller_node')
         self.publisher_ = self.create_publisher(Float32MultiArray, 'send_can_message', 10)
         self.subscription = self.create_subscription(
@@ -32,15 +34,17 @@ class PS3ControllerNode(Node):
         self.timer = self.create_timer(0.001, self.timer_callback)  # 1msに一回
 
     def robot_position_callback(self, msg):
+        # ロボットの位置情報受信時の処理
         self.robot_position = msg.data
 
     def timer_callback(self):
+        # 定期実行: ジョイスティック入力を取得し、CANメッセージを送信する
         pygame.event.pump()
         vx = self.joystick.get_axis(0) * 100.0  # 左ジョイスティックのx軸
         vy = self.joystick.get_axis(1) * 100.0 * -1  # 左ジョイスティックのy軸
         omega = self.joystick.get_axis(3) * 100.0  # 右ジョイスティックのx軸
 
-        # 丸ボタン
+        # 丸ボタン: Action Numberを増加
         if self.joystick.get_button(1):
             if not self.button_states[0]:
                 self.button_states[0] = True
@@ -50,7 +54,7 @@ class PS3ControllerNode(Node):
                     self.action_number += 1
                 self.button_states[0] = False
 
-        # 四角ボタン
+        # 四角ボタン: Action Numberを減少
         if self.joystick.get_button(3):
             if not self.button_states[1]:
                 self.button_states[1] = True
@@ -60,6 +64,7 @@ class PS3ControllerNode(Node):
                     self.action_number -= 1
                 self.button_states[1] = False
 
+        # CANメッセージ送信用データ作成
         data = Float32MultiArray()
         data.data = [float(vx), float(vy), float(omega), float(self.action_number)]
         self.publisher_.publish(data)
@@ -82,6 +87,7 @@ class PS3ControllerNode(Node):
         pygame.display.flip()
 
 def main(args=None):
+    # エントリーポイント
     rclpy.init(args=args)
     node = PS3ControllerNode()
     rclpy.spin(node)

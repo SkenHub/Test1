@@ -1,3 +1,4 @@
+# このファイルは、CANバスを介してメッセージの送受信を実装するためのモジュールです。
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Float32MultiArray
@@ -7,6 +8,7 @@ import time
 
 class CANNode(Node):
     def __init__(self):
+        # コンストラクタ: ノード初期化およびCANバス設定
         super().__init__('can_node')
 
         # CANバスの設定
@@ -29,6 +31,7 @@ class CANNode(Node):
         self.last_msg_time = self.get_clock().now()
 
     def send_can_message_callback(self, msg):
+        # 受信したFloat32MultiArrayメッセージからCANメッセージを構築し送信する
         self.get_logger().info(f"send_can_message_callback called with data: {msg.data}")
         self.last_msg_time = self.get_clock().now()
         if len(msg.data) == 4:
@@ -58,6 +61,7 @@ class CANNode(Node):
                 self.get_logger().error("Failed to send CAN message 0x161")
 
     def timer_callback(self):
+        # タイマーによる定期実行: CANメッセージの受信と処理を行う
         msg = self.bus.recv(timeout=0.001)  # タイムアウトを短く設定
         if msg is not None:
             if msg.arbitration_id == 0x150:
@@ -95,6 +99,7 @@ class CANNode(Node):
                     self.get_logger().error(f"Unpacking error: {e}")
 
 def main(args=None):
+    # エントリーポイント
     rclpy.init(args=args)
     node = CANNode()
     if node.bus:
