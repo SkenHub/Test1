@@ -16,6 +16,7 @@ class PS3ControllerNode(Node):
             self.robot_position_callback,
             10
         )
+        
         os.environ["SDL_JOYSTICK_DEVICE"] = "/dev/input/js0"
         pygame.init()
         pygame.joystick.init()
