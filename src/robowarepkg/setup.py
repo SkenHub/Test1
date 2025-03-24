@@ -20,7 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'roboware_node = robowarepkg.roboware_node:main'
+            'roboware_node = robowarepkg.roboware_node:main',
+            'can_node = robowarepkg.can_node:main',
         ],
     },
 )
