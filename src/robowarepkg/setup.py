@@ -22,7 +22,6 @@ setup(
         'console_scripts': [
             'roboware_node = robowarepkg.roboware_node:main',
             'can_node = robowarepkg.can_node:main',
-            'ps3 = robowarepkg.ps3:main',
         ],
     },
 )
