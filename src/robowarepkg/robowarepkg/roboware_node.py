@@ -1,6 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import Float32MultiArray
+from std_srvs.srv import Empty  # サービス用
 import math
 
 class RoboWareNode(Node):
@@ -44,6 +45,8 @@ class RoboWareNode(Node):
         self.current_target_index = 0  # 現在の目標座標のインデックス
         self.current_position = [0.0, 0.0, 0.0]  # 現在の座標 (X, Y, θ)
         self.action_number = 0  # 指示番号
+        self.is_active = False  # 動作開始フラグ (初期状態は停止)
+
         self.timer = self.create_timer(0.1, self.timer_callback)  # 100msごとに実行
 
         # PID制御用のパラメータ
@@ -54,13 +57,27 @@ class RoboWareNode(Node):
         self.previous_error = [0.0, 0.0]
         self.integral = [0.0, 0.0]
 
+        # サービスを作成して動作開始を制御
+        self.start_service = self.create_service(
+            Empty, 'start_robot', self.start_robot_callback
+        )
+
+    def start_robot_callback(self, request, response):
+        self.is_active = True  # 動作を開始
+        self.get_logger().info("ロボットの動作を開始します")
+        return response
+
     def robot_position_callback(self, msg):
         # マイコンから送られてきた現在のロボット位置を更新
         self.current_position = msg.data
 
     def timer_callback(self):
+        if not self.is_active:
+            return  # 動作開始フラグがFalseの場合は何もしない
+
         if self.current_target_index >= len(self.target_positions):
             self.get_logger().info("全ての目標座標に到達しました")
+            self.is_active = False  # 動作を停止
             return
 
         # 現在の目標座標と目標角度を取得
